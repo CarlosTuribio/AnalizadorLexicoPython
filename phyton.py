@@ -1,5 +1,5 @@
 import re
-import csv
+import json
 
 
 class EntradaInvalidaError(Exception):
@@ -25,16 +25,13 @@ def gerar_tokens(conteudo, regex_tokens):
                 raise EntradaInvalidaError(
                     f"Entrada inválida encontrada: '{token}' na linha {num_linha}, coluna {num_coluna}")
             tokens.append((token, tipo_token, tamanho, (num_linha, num_coluna)))
-
     return tokens
 
 
 def exportar_tokens(tokens, nome_arquivo):
-    with open(nome_arquivo, "w", newline="") as f:
-        escritor = csv.writer(f)
-        escritor.writerow(["Token", "Tipo", "Tamanho", "Posição"])
-        escritor.writerows(tokens)
-
+    tokens_dict = [{"Token": t[0], "Tipo": t[1], "Tamanho": t[2], "Posicao": t[3]} for t in tokens]
+    with open(nome_arquivo, "w") as f:
+        json.dump(tokens_dict, f)
 
 def exportar_simbolos(tokens, nome_arquivo):
     simbolos = []
@@ -42,10 +39,10 @@ def exportar_simbolos(tokens, nome_arquivo):
         if tipo_token in ["Identificador", "Constante"]:
             if token not in [s[1] for s in simbolos]:
                 simbolos.append((len(simbolos) + 1, token))
-    with open(nome_arquivo, "w", newline="") as f:
-        escritor = csv.writer(f)
-        escritor.writerow(["Índice", "Símbolo"])
-        escritor.writerows(simbolos)
+    simbolos_dict = [{"Indice": s[0], "Simbolo": s[1]} for s in simbolos]
+    with open(nome_arquivo, "w") as f:
+        json.dump(simbolos_dict, f)
+
 
 
 def analisador_lexico(nome_arquivo):
@@ -72,8 +69,8 @@ def analisador_lexico(nome_arquivo):
     except EntradaInvalidaError as e:
         print(f"Erro: {str(e)}")
         return
-    exportar_tokens(tokens, "tokens.csv")
-    exportar_simbolos(tokens, "simbolos.csv")
+    exportar_tokens(tokens, "tokens.json")
+    exportar_simbolos(tokens, "simbolos.json")
 
 
 analisador_lexico("entrada.txt")
